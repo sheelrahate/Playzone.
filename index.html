@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlayZone — Free Online Games</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff}
+header{padding:22px 6%;display:flex;justify-content:space-between;align-items:center;background:#111827;position:sticky;top:0;z-index:5}
+.logo{font-size:25px;font-weight:800;color:#60a5fa}.tag{color:#94a3b8;font-size:14px}
+main{max-width:1100px;margin:auto;padding:35px 6%}
+.hero{padding:30px 0}.hero h1{font-size:42px;margin:0 0 10px}.hero p{color:#cbd5e1}
+.search{width:100%;padding:14px 16px;border-radius:12px;border:1px solid #334155;background:#1e293b;color:#fff;font-size:16px;margin:18px 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:20px;cursor:pointer;transition:.2s}
+.card:hover{transform:translateY(-4px);border-color:#60a5fa}.emoji{font-size:45px}.card h3{margin:12px 0 5px}.card p{color:#94a3b8;margin:0}
+.game{display:none;background:#111827;border-radius:18px;padding:22px;margin-top:25px;text-align:center}
+.game button{padding:11px 18px;border:0;border-radius:10px;background:#3b82f6;color:#fff;cursor:pointer;font-weight:bold}
+.back{background:#334155!important;margin-bottom:15px}
+#board{display:grid;grid-template-columns:repeat(3,90px);gap:8px;justify-content:center;margin:20px auto}
+.cell{height:90px;background:#1e293b;border:1px solid #475569;border-radius:10px;font-size:38px;color:#fff}
+#snakeCanvas{background:#020617;border:2px solid #334155;max-width:100%;width:360px;height:360px}
+footer{text-align:center;color:#64748b;padding:35px}
+</style>
+</head>
+<body>
+<header><div class="logo">🎮 PlayZone</div><div class="tag">Free browser games</div></header>
+<main>
+<section class="hero">
+<h1>Play Free Online Games</h1>
+<p>Quick, simple games that run directly in your browser.</p>
+<input id="search" class="search" placeholder="Search games..." oninput="filterGames()">
+</section>
+
+<section id="games" class="grid">
+<div class="card" data-name="tic tac toe" onclick="openGame('ttt')"><div class="emoji">❌⭕</div><h3>Tic-Tac-Toe</h3><p>Challenge a friend on the same device.</p></div>
+<div class="card" data-name="memory match" onclick="openGame('memory')"><div class="emoji">🧠</div><h3>Memory Match</h3><p>Find all matching pairs.</p></div>
+<div class="card" data-name="snake" onclick="openGame('snake')"><div class="emoji">🐍</div><h3>Snake</h3><p>Eat the food and grow!</p></div>
+</section>
+
+<section id="ttt" class="game">
+<button class="back" onclick="closeGames()">← Back</button><h2>❌⭕ Tic-Tac-Toe</h2>
+<div id="board"></div><p id="tttStatus">X's turn</p><button onclick="resetTTT()">New Game</button>
+</section>
+
+<section id="memory" class="game">
+<button class="back" onclick="closeGames()">← Back</button><h2>🧠 Memory Match</h2>
+<div id="memoryBoard" class="grid" style="max-width:500px;margin:auto"></div><p id="memoryStatus">Find the matching pairs.</p><button onclick="resetMemory()">Restart</button>
+</section>
+
+<section id="snake" class="game">
+<button class="back" onclick="closeGames()">← Back</button><h2>🐍 Snake</h2>
+<canvas id="snakeCanvas" width="360" height="360"></canvas><p>Use arrow keys to move.</p><p id="snakeScore">Score: 0</p><button onclick="startSnake()">Restart</button>
+</section>
+</main>
+<footer>© 2026 PlayZone • Made for fun</footer>
+
+<script>
+function filterGames(){let q=document.getElementById('search').value.toLowerCase();document.querySelectorAll('#games .card').forEach(c=>c.style.display=c.dataset.name.includes(q)?'block':'none')}
+function closeGames(){document.querySelectorAll('.game').forEach(g=>g.style.display='none');document.getElementById('games').style.display='grid'}
+function openGame(id){document.getElementById('games').style.display='none';document.querySelectorAll('.game').forEach(g=>g.style.display='none');document.getElementById(id).style.display='block';if(id==='ttt')resetTTT();if(id==='memory')resetMemory();if(id==='snake')startSnake()}
+
+/* Tic-Tac-Toe */
+let ttt=['','','','','','','','',''],turn='X';
+function resetTTT(){ttt=['','','','','','','','',''];turn='X';drawTTT();document.getElementById('tttStatus').textContent="X's turn"}
+function drawTTT(){let b=document.getElementById('board');b.innerHTML='';ttt.forEach((v,i)=>{let x=document.createElement('button');x.className='cell';x.textContent=v;x.onclick=()=>moveTTT(i);b.appendChild(x)})}
+function moveTTT(i){if(ttt[i])return;ttt[i]=turn;let wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];let won=wins.some(w=>w.every(n=>ttt[n]===turn));drawTTT();if(won){document.getElementById('tttStatus').textContent=turn+' wins!';return}if(ttt.every(Boolean)){document.getElementById('tttStatus').textContent='Draw!';return}turn=turn==='X'?'O':'X';document.getElementById('tttStatus').textContent=turn+"'s turn"}
+
+/* Memory */
+let first=null,lock=false,matches=0;
+function resetMemory(){let symbols=['🍎','🍎','🚀','🚀','⭐','⭐','🐱','🐱','⚽','⚽','🎵','🎵'];symbols.sort(()=>Math.random()-.5);first=null;lock=false;matches=0;let b=document.getElementById('memoryBoard');b.innerHTML='';symbols.forEach((s,i)=>{let c=document.createElement('button');c.className='card';c.style.height='80px';c.style.fontSize='30px';c.dataset.symbol=s;c.dataset.i=i;c.textContent='❓';c.onclick=()=>flip(c);b.appendChild(c)});document.getElementById('memoryStatus').textContent='Find the matching pairs.'}
+function flip(c){if(lock||c===first||c.dataset.done)return;c.textContent=c.dataset.symbol;if(!first){first=c;return}if(first.dataset.symbol===c.dataset.symbol){first.dataset.done=c.dataset.done='1';first=null;matches++;if(matches===6)document.getElementById('memoryStatus').textContent='You found them all! 🎉'}else{lock=true;setTimeout(()=>{c.textContent=first.textContent='❓';first=null;lock=false},700)}}
+
+/* Snake */
+let ctx=document.getElementById('snakeCanvas').getContext('2d'),snake,food,dir,score,timer;
+function startSnake(){clearInterval(timer);snake=[{x:180,y:180}];food={x:60,y:60};dir={x:20,y:0};score=0;document.getElementById('snakeScore').textContent='Score: 0';timer=setInterval(stepSnake,110)}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowUp'&&dir.y===0)dir={x:0,y:-20};if(e.key==='ArrowDown'&&dir.y===0)dir={x:0,y:20};if(e.key==='ArrowLeft'&&dir.x===0)dir={x:-20,y:0};if(e.key==='ArrowRight'&&dir.x===0)dir={x:20,y:0}});
+function stepSnake(){let h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};if(h.x<0||h.y<0||h.x>=360||h.y>=360||snake.some(p=>p.x===h.x&&p.y===h.y)){clearInterval(timer);alert('Game over! Score: '+score);return}snake.unshift(h);if(h.x===food.x&&h.y===food.y){score++;document.getElementById('snakeScore').textContent='Score: '+score;food={x:Math.floor(Math.random()*18)*20,y:Math.floor(Math.random()*18)*20}}else snake.pop();ctx.clearRect(0,0,360,360);ctx.fillStyle='#22c55e';snake.forEach(p=>ctx.fillRect(p.x,p.y,18,18));ctx.fillStyle='#ef4444';ctx.fillRect(food.x,food.y,18,18)}
+closeGames();
+</script>
+</body>
+</html>
